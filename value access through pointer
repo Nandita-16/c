@@ -1,0 +1,13 @@
+#include <iostream>
+using namespace std;
+
+int main() {
+    const int number = 50;
+
+    const int* ptr = &number;
+
+    cout << "Value of number: " << number << endl;
+    cout << "Value accessed through pointer: " << *ptr << endl;
+
+    return 0;
+}
