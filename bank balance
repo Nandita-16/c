@@ -1,0 +1,43 @@
+#include <iostream>
+using namespace std;
+
+class BankAccount {
+private:
+    int accountNumber;
+    double balance;
+
+public:
+    // Constructor
+    BankAccount(int accNo, double bal) {
+        accountNumber = accNo;
+        balance = bal;
+        cout << "Constructor called for Account Number: "
+             << accountNumber << endl;
+    }
+
+    // Destructor
+    ~BankAccount() {
+        cout << "Destructor called for Account Number: "
+             << accountNumber << endl;
+    }
+
+    // Display function
+    void display() {
+        cout << "Account Number: " << accountNumber << endl;
+        cout << "Balance: " << balance << endl;
+    }
+};
+
+// Function to create object
+void createAccount() {
+    BankAccount acc(101, 5000.0);
+    acc.display();
+    cout << "Exiting function createAccount()" << endl;
+}
+
+int main() {
+    cout << "Calling createAccount()" << endl;
+    createAccount();
+    cout << "Back to main()" << endl;
+    return 0;
+}
