@@ -1,0 +1,184 @@
+#include <iostream>
+#include <sstream>
+#include <vector>
+using namespace std;
+
+struct DirNode {
+    string name;
+    bool isFile;
+    DirNode* child;
+    DirNode* sibling;
+
+    DirNode(string n, bool f) {
+        name = n;
+        isFile = f;
+        child = sibling = nullptr;
+    }
+};
+
+class FileSystem {
+private:
+    DirNode* root;
+
+    vector<string> split(string path) {
+        vector<string> parts;
+        stringstream ss(path);
+        string token;
+        while (getline(ss, token, '/')) {
+            if (!token.empty())
+                parts.push_back(token);
+        }
+        return parts;
+    }
+
+    DirNode* findNode(string path) {
+        if (path == "/") return root;
+
+        vector<string> parts = split(path);
+        DirNode* current = root;
+
+        for (string part : parts) {
+            DirNode* temp = current->child;
+            while (temp && temp->name != part)
+                temp = temp->sibling;
+
+            if (!temp) return nullptr;
+            current = temp;
+        }
+        return current;
+    }
+
+    void deleteSubtree(DirNode* node) {
+        if (!node) return;
+        deleteSubtree(node->child);
+        deleteSubtree(node->sibling);
+        delete node;
+    }
+
+public:
+    FileSystem() {
+        root = new DirNode("/", false);
+    }
+
+    ~FileSystem() {
+        deleteSubtree(root);
+    }
+
+    void createFolder(string path) {
+        vector<string> parts = split(path);
+        DirNode* current = root;
+
+        for (string part : parts) {
+            DirNode* temp = current->child;
+            DirNode* prev = nullptr;
+
+            while (temp && temp->name != part) {
+                prev = temp;
+                temp = temp->sibling;
+            }
+
+            if (!temp) {
+                DirNode* newNode = new DirNode(part, false);
+                if (!prev)
+                    current->child = newNode;
+                else
+                    prev->sibling = newNode;
+                current = newNode;
+            } else {
+                current = temp;
+            }
+        }
+    }
+
+    void createFile(string path) {
+        vector<string> parts = split(path);
+        string fileName = parts.back();
+        parts.pop_back();
+
+        DirNode* current = root;
+
+        for (string part : parts) {
+            DirNode* temp = current->child;
+            while (temp && temp->name != part)
+                temp = temp->sibling;
+
+            if (!temp) return;
+            current = temp;
+        }
+
+        DirNode* newFile = new DirNode(fileName, true);
+        newFile->sibling = current->child;
+        current->child = newFile;
+    }
+
+    void list(string path) {
+        DirNode* node = findNode(path);
+        if (!node) {
+            cout << "Path not found\n";
+            return;
+        }
+
+        DirNode* temp = node->child;
+        while (temp) {
+            cout << (temp->isFile ? "File: " : "Folder: ")
+                 << temp->name << endl;
+            temp = temp->sibling;
+        }
+    }
+
+    void deleteNode(string path) {
+        if (path == "/") return;
+
+        vector<string> parts = split(path);
+        string target = parts.back();
+        parts.pop_back();
+
+        DirNode* parent = findNode("/");
+
+        for (string part : parts) {
+            DirNode* temp = parent->child;
+            while (temp && temp->name != part)
+                temp = temp->sibling;
+            if (!temp) return;
+            parent = temp;
+        }
+
+        DirNode* current = parent->child;
+        DirNode* prev = nullptr;
+
+        while (current && current->name != target) {
+            prev = current;
+            current = current->sibling;
+        }
+
+        if (!current) return;
+
+        if (!prev)
+            parent->child = current->sibling;
+        else
+            prev->sibling = current->sibling;
+
+        current->sibling = nullptr;
+        deleteSubtree(current);
+    }
+};
+
+int main() {
+    FileSystem fs;
+
+    fs.createFolder("/docs");
+    fs.createFolder("/docs/projects");
+    fs.createFile("/docs/file1.txt");
+    fs.createFile("/docs/projects/code.cpp");
+
+    cout << "Listing /docs\n";
+    fs.list("/docs");
+
+    cout << "\nDeleting /docs/file1.txt\n";
+    fs.deleteNode("/docs/file1.txt");
+
+    cout << "\nListing /docs\n";
+    fs.list("/docs");
+
+    return 0;
+}
