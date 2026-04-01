@@ -1,0 +1,49 @@
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+class Employee {
+private:
+    int id;
+    string name;
+    float salary;
+
+public:
+    void read(ifstream &fin) {
+        fin >> id >> name >> salary;
+    }
+
+    void calculateSalary() {
+        float bonus = 0.10 * salary;
+        float deduction = 0.05 * salary;
+        salary = salary + bonus - deduction;
+    }
+
+    void write(ofstream &fout) {
+        fout << id << " " << name << " " << salary << endl;
+    }
+};
+
+int main() {
+    ifstream fin("employee.txt");
+    ofstream fout("output.txt");
+
+    if(!fin) {
+        cout << "File not found\n";
+        return 0;
+    }
+
+    Employee e;
+
+    while(fin) {
+        e.read(fin);
+        if(fin.eof()) break;
+        e.calculateSalary();
+        e.write(fout);
+    }
+
+    fin.close();
+    fout.close();
+
+    return 0;
+}
